@@ -20,74 +20,36 @@ class Flecsi(CMakePackage):
     homepage = 'http://flecsi.lanl.gov/'
     git      = 'https://github.com/laristra/flecsi.git'
 
-    version('develop', branch='master', submodules=False, preferred=True)
-    version('flecsph', branch='feature/flecsph', submodules=False)
-
-    variant('backend', default='mpi', values=('serial', 'mpi', 'legion'),
+    version('develop', branch='feature/refactor', submodules=False, preferred=True)
+    variant('backend', default='hpx', values=('serial', 'mpi', 'legion','hpx'),
             description='Backend to use for distributed memory')
-    variant('caliper', default=False,
-            description='Enable Caliper Support')
-    variant('graphviz', default=False,
-            description='Enable GraphViz Support')
-    variant('tutorial', default=False,
-            description='Build FleCSI Tutorials')
-    variant('flecstan', default=False,
-            description='Build FleCSI Static Analyzer')
 
     depends_on('cmake@3.1:',  type='build')
-    # Requires cinch > 1.0 due to cinchlog installation issue
-    depends_on('cinch@1.01:', type='build')
-    depends_on('mpi', when='backend=mpi')
-    depends_on('mpi', when='backend=legion')
-    depends_on('gasnet@2019.3.0 ~pshm', when='backend=legion')
-    depends_on('legion@ctrl-rep +shared +mpi', when='backend=legion')
-    depends_on('boost@1.59.0: cxxstd=11 +program_options')
+    depends_on('mpi', when='backend=hpx')
+    depends_on('hpx@stable', when='backend=hpx')
     depends_on('metis@5.1.0:')
     depends_on('parmetis@4.0.3:')
     depends_on('caliper', when='+caliper')
     depends_on('graphviz', when='+graphviz')
     depends_on('python@3.0:', when='+tutorial')
-    depends_on('llvm', when='+flecstan')
 
     def cmake_args(self):
         options = ['-DCMAKE_BUILD_TYPE=debug']
         options.append('-DCINCH_SOURCE_DIR=' + self.spec['cinch'].prefix)
 
-        # FleCSI for FleCSPH flags
-        if self.spec.satisfies('@flecsph:'):
+        if self.spec.variants['backend'].value == 'hpx':
+            options.append('-DFLECSI_RUNTIME_MODEL=hpx')
             options.append('-DENABLE_MPI=ON')
             options.append('-DENABLE_OPENMP=ON')
             options.append('-DCXX_CONFORMANCE_STANDARD=c++17')
-            options.append('-DFLECSI_RUNTIME_MODEL=mpi')
+            options.append('-DFLECSI_RUNTIME_MODEL=hpx')
             options.append('-DENABLE_FLECSIT=OFF')
             options.append('-DENABLE_FLECSI_TUTORIAL=OFF')
-            return options
-
-        if self.spec.variants['backend'].value == 'legion':
-            options.append('-DFLECSI_RUNTIME_MODEL=legion')
-        elif self.spec.variants['backend'].value == 'mpi':
-            options.append('-DFLECSI_RUNTIME_MODEL=mpi')
-        else:
-            options.append('-DFLECSI_RUNTIME_MODEL=serial')
-            options.append(
-                '-DENABLE_MPI=OFF',
-            )
-
-        if '+tutorial' in self.spec:
-            options.append('-DENABLE_FLECSIT=ON')
-            options.append('-DENABLE_FLECSI_TUTORIAL=ON')
-        else:
-            options.append('-DENABLE_FLECSIT=OFF')
-            options.append('-DENABLE_FLECSI_TUTORIAL=OFF')
-
-        if '+caliper' in self.spec:
-            options.append('-DENABLE_CALIPER=ON')
-        else:
-            options.append('-DENABLE_CALIPER=OFF')
-
-        if '+flecstan' in self.spec:
-            options.append('-DENABLE_FLECSTAN=ON')
-        else:
-            options.append('-DENABLE_FLECSTAN=OFF')
+            options.append('DENABLE_METIS=ON')
+            options.append('DENABLE_PARMETIS=ON')
+            options.append('DENABLE_COLORING=ON')
+            options.append('DENABLE_UNIT_TESTS=ON')
+            options.append('DENABLE_DEVEL_TARGETS=ON')
+            options.append('DFLECSI_RUNTIME_MODEL=hpx')
 
         return options

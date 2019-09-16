@@ -12,7 +12,9 @@ class Hpx(CMakePackage, CudaPackage):
 
     homepage = "http://stellar.cct.lsu.edu/tag/hpx/"
     url = "https://github.com/STEllAR-GROUP/hpx/archive/1.2.1.tar.gz"
+    git = "https://github.com/STEllAR-GROUP/hpx.git"
 
+    version('stable', tag='stable')
     version('1.3.0', sha256='cd34da674064c4cc4a331402edbd65c5a1f8058fb46003314ca18fa08423c5ad')
     version('1.2.1', sha256='8cba9b48e919035176d3b7bbfc2c110df6f07803256626f1dad8d9dde16ab77a')
     version('1.2.0', sha256='20942314bd90064d9775f63b0e58a8ea146af5260a4c84d0854f9f968077c170')
@@ -44,6 +46,10 @@ class Hpx(CMakePackage, CudaPackage):
     depends_on('python', type=('build', 'test', 'run'))
     depends_on('pkgconfig', type='build')
     depends_on('git', type='build')
+
+    # Recommended dependency versions for stable
+    depends_on('boost@1.70.0', when='@:stable')
+    depends_on('boost cxxstd=17', when='@:stable')
 
     # Recommended dependency versions for 1.2.X
     depends_on('cmake@3.9.0:', when='@:1.2.1', type='build')

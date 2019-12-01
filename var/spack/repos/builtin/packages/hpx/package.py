@@ -21,7 +21,7 @@ class Hpx(CMakePackage, CudaPackage):
     version('1.1.0', sha256='1f28bbe58d8f0da600d60c3a74a644d75ac777b20a018a5c1c6030a470e8a1c9')
 
     variant('cxxstd',
-            default='17',
+            default='14',
             values=('11', '14', '17'),
             description='Use the specified C++ standard when building.')
 
@@ -52,6 +52,9 @@ class Hpx(CMakePackage, CudaPackage):
     depends_on('python', type=('build', 'test', 'run'))
     depends_on('pkgconfig', type='build')
     depends_on('git', type='build')
+
+    # Recommended dependency versions for master
+    depends_on('boost@1.70.0 cxxstd=14', when='@:master')
 
     # Recommended dependency versions for 1.2.X
     depends_on('cmake@3.9.0:', when='@:1.2.1', type='build')
